@@ -17,8 +17,6 @@ void AMovingPlatform::BeginPlay()
 	Super::BeginPlay();
 
 	StartLocation = GetActorLocation();
-
-	UE_LOG(LogTemp, Display, TEXT("Current move distance : %f"), MoveDistance);
 }
 
 // Called every frame
@@ -26,18 +24,32 @@ void AMovingPlatform::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	MovePlatform(DeltaTime);
+	RotatePlatform();
+}
+
+void AMovingPlatform::MovePlatform(const float DeltaTime)
+{
 	FVector CurrentLocation = GetActorLocation();
 	CurrentLocation += PlatformVelocity * DeltaTime;
 	SetActorLocation(CurrentLocation);
+}
 
-	const float DistanceMoved = FVector::Dist(StartLocation, CurrentLocation);
-	if (DistanceMoved > MoveDistance)
+void AMovingPlatform::RotatePlatform()
+{
+	const float DistanceMoved = FVector::Dist(StartLocation, GetActorLocation());
+	if (DistanceMoved < MoveDistance)
 	{
-		FVector MoveDirection = PlatformVelocity.GetSafeNormal();
-		StartLocation = StartLocation + MoveDirection * MoveDistance;
-		SetActorLocation(StartLocation);
-
-		PlatformVelocity *= -1;
+		return;
 	}
+
+	float OverShoot = DistanceMoved - MoveDistance;
+	FString Name = GetName();
+	UE_LOG(LogTemp, Display, TEXT("%s Platform Overshoot %f"), *Name, OverShoot);
+	FVector MoveDirection = PlatformVelocity.GetSafeNormal();
+	StartLocation = StartLocation + MoveDirection * MoveDistance;
+	SetActorLocation(StartLocation);
+
+	PlatformVelocity *= -1;
 }
 
